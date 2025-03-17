@@ -225,8 +225,23 @@ def update_item_with_file_link(item_id, file_url):
 
 def process_deal(item_id):
     """Обрабатывает конкретную сделку по её ID"""
-    response = requests.get(BITRIX_ITEM_LIST_URL, params={"entityTypeId": BITRIX_SMART_PROCESS_ID, "filter": {"id": item_id}})
+    if not item_id:
+        print("❌ Ошибка: item_id не передан.")
+        return
+
+    try:
+        item_id = int(item_id)
+    except ValueError:
+        print("❌ Ошибка: item_id должен быть числом.")
+        return
+
+    print(f"🔄 Запрос данных по сделке {item_id}...")
+
+    response = requests.get(BITRIX_ITEM_LIST_URL, params={"entityTypeId": BITRIX_SMART_PROCESS_ID, "filter[id]": str(item_id)})
     data = response.json()
+
+    # Логируем ответ Bitrix24 API
+    print("🔍 Ответ от Bitrix24:", json.dumps(data, indent=2, ensure_ascii=False))
 
     if "result" in data and "items" in data["result"] and data["result"]["items"]:
         deal = data["result"]["items"][0]
@@ -245,6 +260,7 @@ def process_deal(item_id):
             print(f"✅ Сделка {item_id} обработана.")
     else:
         print(f"❌ Сделка {item_id} не найдена.")
+
 
 
 # Основной процесс обработки сделок
