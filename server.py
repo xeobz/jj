@@ -223,6 +223,30 @@ def update_item_with_file_link(item_id, file_url):
     else:
         print(f"❌ Ошибка обновления сделки {item_id}:", response.json())
 
+def process_deal(item_id):
+    """Обрабатывает конкретную сделку по её ID"""
+    response = requests.get(BITRIX_ITEM_LIST_URL, params={"entityTypeId": BITRIX_SMART_PROCESS_ID, "filter": {"id": item_id}})
+    data = response.json()
+
+    if "result" in data and "items" in data["result"] and data["result"]["items"]:
+        deal = data["result"]["items"][0]
+        processed_flag = deal.get(BITRIX_PROCESSED_FIELD, "")
+
+        if processed_flag == "1":
+            print(f"⚠ Сделка {item_id} уже обработана. Пропускаем...")
+            return
+
+        file_name = create_excel_file(deal, item_id)
+        file_url, _ = upload_to_bitrix(file_name)
+
+        if file_url:
+            update_item_with_file_link(item_id, file_url)
+            set_processed_flag(item_id)
+            print(f"✅ Сделка {item_id} обработана.")
+    else:
+        print(f"❌ Сделка {item_id} не найдена.")
+
+
 # Основной процесс обработки сделок
 def process_deals():
     deals = get_target_deals()
@@ -264,10 +288,22 @@ def set_processed_flag(item_id):
 # Flask-сервер для запуска скрипта
 app = Flask(__name__)
 
-@app.route("/")
+from flask import request  # Добавляем импорт request
+
+@app.route("/", methods=["GET", "POST"])
 def run_script():
-    process_deals()
-    return "Обработка завершена."
+    item_id = request.args.get("item_id")  # Получаем ID из GET-запроса
+    if request.method == "POST":
+        data = request.get_json()  # Получаем данные из POST-запроса
+        if data and "item_id" in data:
+            item_id = data["item_id"]  # Извлекаем ID сделки из тела запроса
+    
+    if item_id:
+        process_deal(item_id)  # Запускаем обработку только этой сделки
+        return f"Обработана сделка {item_id}"
+    else:
+        process_deals()  # Обрабатываем все сделки, если ID не передан
+        return "Обработка завершена."
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
