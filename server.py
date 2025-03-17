@@ -13,6 +13,81 @@ BITRIX_ITEM_LIST_URL = f"{BITRIX_URL}/crm.item.list"
 BITRIX_ITEM_UPDATE_URL = f"{BITRIX_URL}/crm.item.update"
 BITRIX_DISK_UPLOAD_URL = f"{BITRIX_URL}/disk.folder.uploadfile"
 BITRIX_PROCESSED_FIELD = "ufCrm8_1742219108820"  # Название поля-флага
+BITRIX_TEMPLATE_FILE_ID = "1704"  # ID файла-шаблона
+BITRIX_TEMPLATE_FOLDER_ID = "1702"  # ID папки, где лежит шаблон
+BITRIX_REPORTS_FOLDER_ID = "666"  # ID папки "Отчеты"
+BITRIX_SALES_SCENARIO_FIELD = "ufCrm8_1741619470239"  # Поле для ссылки на файл
+
+def copy_template_to_reports(item_id):
+    """Копирует шаблон в папку 'Отчеты', присваивает уникальное имя и обновляет сделку"""
+    unique_id = uuid.uuid4().hex[:8]  # Генерируем 8-символьный уникальный идентификатор
+    new_file_name = f"Сценарий продаж_{unique_id}.xlsx"  # Новое имя файла
+
+    copy_response = requests.post(f"{BITRIX_URL}/disk.file.copy", json={
+        "id": BITRIX_TEMPLATE_FILE_ID,
+        "targetFolderId": BITRIX_REPORTS_FOLDER_ID,
+        "newName": new_file_name
+    })
+
+    copy_data = copy_response.json()
+    
+    if "result" in copy_data:
+        new_file_id = copy_data["result"]
+        
+        # Получаем ссылку на новый файл
+        file_response = requests.get(f"{BITRIX_URL}/disk.file.get", params={"id": new_file_id})
+        file_data = file_response.json()
+
+        if "result" in file_data and "DETAIL_URL" in file_data["result"]:
+            file_url = file_data["result"]["DETAIL_URL"]
+            
+            # Обновляем сделку ссылкой на файл
+            update_item_with_file_link(item_id, file_url, BITRIX_SALES_SCENARIO_FIELD)
+            print(f"✅ Файл '{new_file_name}' загружен в сделку {item_id}.")
+        else:
+            print(f"❌ Ошибка получения ссылки на файл {new_file_id}.")
+    else:
+        print(f"❌ Ошибка копирования шаблона для сделки {item_id}: {copy_data}")
+
+def update_item_with_file_link(item_id, file_url, field):
+    """Обновляет поле сделки ссылкой на файл"""
+    response = requests.post(BITRIX_ITEM_UPDATE_URL, json={
+        "entityTypeId": BITRIX_SMART_PROCESS_ID,
+        "id": item_id,
+        "fields": {field: file_url}
+    })
+
+    if response.json().get("result"):
+        print(f"✅ Сделка {item_id} обновлена ссылкой на файл {file_url}.")
+    else:
+        print(f"❌ Ошибка обновления сделки {item_id}:", response.json())
+
+def process_deal(item_id):
+    """Обрабатывает конкретную сделку, загружая шаблон или создавая отчет"""
+    response = requests.get(BITRIX_ITEM_LIST_URL, params={"entityTypeId": BITRIX_SMART_PROCESS_ID, "filter[id]": str(item_id)})
+    data = response.json()
+
+    if "result" in data and "items" in data["result"] and data["result"]["items"]:
+        deal = data["result"]["items"][0]
+        processed_flag = deal.get(BITRIX_PROCESSED_FIELD, "")
+        stage_id = deal.get("stageId", "")
+
+        if processed_flag == "1":
+            print(f"⚠ Сделка {item_id} уже обработана. Пропускаем...")
+            return
+        
+        if stage_id == "DT1042_12:NEW":  # Если сделка на первой стадии, копируем шаблон
+            copy_template_to_reports(item_id)
+        else:  # В остальных случаях создаем отчет
+            file_name = create_excel_file(deal, item_id)
+            file_url, _ = upload_to_bitrix(file_name)
+
+            if file_url:
+                update_item_with_file_link(item_id, file_url, BITRIX_FILE_FIELD)
+                set_processed_flag(item_id)
+                print(f"✅ Сделка {item_id} обработана.")
+    else:
+        print(f"❌ Сделка {item_id} не найдена.")
 
 # Стадия для обработки сделок
 TARGET_STAGE_ID = "DT1042_12:UC_SJ9G5V"
