@@ -69,55 +69,52 @@ def get_user_name(user_id):
 
 
 def process_field_value(field, value):
-    # Обрабатываем множественные поля (кроме определенных)
-    if isinstance(value, list) and field not in ["ufCrm8_1741776999985", "ufCrm8_1741619856822"]:
-        return "\n".join(str(v) for v in value)  # Обычные множественные поля оставляем как есть
+    if value is None:
+        return ""  # Если значение None, возвращаем пустую строку
 
-    # Обработка "Ответственного за проверку" (ФИО)
-    if field == "ufCrm8_1741620290":  
-        return get_user_name(value) if isinstance(value, int) else "\n".join(get_user_name(v) for v in value)
+    if isinstance(value, list):  # Обрабатываем множественные поля
+        value = [str(v) for v in value]  # Приводим все элементы к строковому виду
 
-    # Обработка "Формата марафона"
-    if field == "ufCrm8_1741618429801":  
+    if field == "ufCrm8_1741620290":  # Ответственный за проверку (ФИО)
+        if isinstance(value, int):
+            return get_user_name(value)
+        elif isinstance(value, list):
+            return "\n".join(get_user_name(v) for v in value if v)  # Проверяем, что v не None
+
+    if field == "ufCrm8_1741618429801":  # Формат марафона
         return "Бесплатный" if value == 44 else "Продающий" if value == 46 else str(value)
 
-    # Обработка "Рассрочки"
-    elif field == "ufCrm8_1741619708814":  
+    elif field == "ufCrm8_1741619708814":  # Рассрочка
         return "Да" if value == 68 else "Нет"
 
-    # Чат-боты TG, WhatsApp, VK
-    elif field == "ufCrm8_1741775887372":  
+    elif field == "ufCrm8_1741775887372":  # Используем чат-бот TG
         return "Нет" if value == 112 else "Да"
-    elif field == "ufCrm8_1741775945725":  
+
+    elif field == "ufCrm8_1741775945725":  # Используем чат-бот WhatsApp
         return "Нет" if value == 120 else "Да"
-    elif field == "ufCrm8_1741775905327":  
+
+    elif field == "ufCrm8_1741775905327":  # Используем чат-бот VK
         return "Да" if value == 114 else "Нет"
 
-    # Обработка "Типа основной площадки" (специальная логика)
-    elif field == "ufCrm8_1741776999985":  
+    elif field == "ufCrm8_1741776999985":  # Тип основной площадки (множественное поле)
         mapping = {122: "Лендинг (LP)"}
         if isinstance(value, list):  
-            return "\n".join(mapping.get(int(v), "Лендинг (ГТ)") for v in value)
+            return "\n".join(mapping.get(int(v), "Лендинг (ГТ)") for v in value if v)
         return mapping.get(int(value), "Лендинг (ГТ)")
 
-    # Обработка "Типа виджета" (специальная логика)
-    elif field == "ufCrm8_1741619856822":  
+    elif field == "ufCrm8_1741619856822":  # Тип виджета
         mapping = {78: "Внешний", 82: "Чат-бот", 80: "Форма заявки"}  
         if isinstance(value, list):  
-            return "\n".join(mapping.get(int(v), "Форма заявки") for v in value)
+            return "\n".join(mapping.get(int(v), "Форма заявки") for v in value if v)
         return mapping.get(int(value), "Форма заявки")
 
-    # Обработка "Формата презентации"
-    elif field == "ufCrm8_1741620131859":  
+    elif field == "ufCrm8_1741620131859":  # Формат презентации
         return "PDF" if value == 90 else "PowerPoint" if value == 92 else "Google Slides"
 
-    # Обработка "Готово к запуску?"
-    elif field == "ufCrm8_1741620350428":  
+    elif field == "ufCrm8_1741620350428":  # Готово к запуску?
         return "Да" if value == 106 else "Нет" if value == 108 else "На доработке"
 
-    # Все остальные поля просто конвертируем в строку
-    return str(value) if value is not None else ""
-
+    return str(value)  # Все остальные поля просто конвертируем в строку
 
 
 
