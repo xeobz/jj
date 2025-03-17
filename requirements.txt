@@ -1,5 +1,4 @@
 flask
-pandas
-pydrive
-openpyxl
+requests
+xlsxwriter
 gunicorn
