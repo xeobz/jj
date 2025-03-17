@@ -3,22 +3,10 @@ import json
 import xlsxwriter
 import os
 import uuid
-import threading
-import time
+
 from flask import Flask
 
-def keep_alive():
-    while True:
-        try:
-            requests.get("https://jj-e1x1.onrender.com")
-            requests.get("https://bbb-2ws1.onrender.com")
-            print("Keep-alive ping sent.")
-        except Exception as e:
-            print(f"Ping failed: {e}")
-        time.sleep(60)  # Пинговать каждую минуту
 
-# Запуск фонового потока
-threading.Thread(target=keep_alive, daemon=True).start()
 
 # Настройки API Bitrix24
 BITRIX_URL = "https://inwork.bitrix24.ru/rest/8/fjtuc0gmxac1ife0"
