@@ -12,6 +12,7 @@ BITRIX_SMART_PROCESS_ID = 1042  # ID смарт-процесса
 BITRIX_ITEM_LIST_URL = f"{BITRIX_URL}/crm.item.list"
 BITRIX_ITEM_UPDATE_URL = f"{BITRIX_URL}/crm.item.update"
 BITRIX_DISK_UPLOAD_URL = f"{BITRIX_URL}/disk.folder.uploadfile"
+BITRIX_PROCESSED_FIELD = "ufCrm8_1742219108820"  # Название поля-флага
 
 # Стадия для обработки сделок
 TARGET_STAGE_ID = "DT1042_12:UC_SJ9G5V"
@@ -232,11 +233,33 @@ def process_deals():
 
     for deal in deals:
         item_id = deal["id"]
+
+        processed_flag = deal.get(BITRIX_PROCESSED_FIELD, "")  # Проверяем флаг
+
+        if processed_flag == "1":
+            print(f"⚠ Сделка {item_id} уже была обработана. Пропускаем...")
+            continue  # Если флаг уже стоит, пропускаем сделку
+        
         file_name = create_excel_file(deal, item_id)
         file_url, _ = upload_to_bitrix(file_name)
 
         if file_url:
             update_item_with_file_link(item_id, file_url)
+            set_processed_flag(item_id)  # Устанавливаем "1" после обработки
+
+def set_processed_flag(item_id):
+    """ Устанавливаем флаг "1" в текстовое поле, чтобы сделка не обрабатывалась повторно """
+    response = requests.post(BITRIX_ITEM_UPDATE_URL, json={
+        "entityTypeId": BITRIX_SMART_PROCESS_ID,
+        "id": item_id,
+        "fields": {BITRIX_PROCESSED_FIELD: "1"}  # Записываем "1" в текстовое поле
+    })
+
+    if response.json().get("result"):
+        print(f"✅ Флаг '1' установлен для сделки {item_id}")
+    else:
+        print(f"❌ Ошибка установки флага для сделки {item_id}:", response.json())
+
 
 # Flask-сервер для запуска скрипта
 app = Flask(__name__)
