@@ -74,7 +74,7 @@ def process_field_value(field, value):
         return ""  # Если значение None, возвращаем пустую строку
 
     if isinstance(value, list):  # Обрабатываем множественные поля
-        value = [str(v) for v in value]  # Приводим все элементы к строковому виду
+        return "\n".join(str(v) for v in value)  # Объединяем элементы через новую строку
 
     if field == "ufCrm8_1741620290":  # Ответственный за проверку (ФИО)
         if isinstance(value, int):
