@@ -42,14 +42,14 @@ def copy_template_to_reports(item_id):
             file_url = file_data["result"]["DETAIL_URL"]
             
             # Обновляем сделку ссылкой на файл
-            update_item_with_file_link(item_id, file_url, BITRIX_SALES_SCENARIO_FIELD)
+            update_item_with_file_link1(item_id, file_url, BITRIX_SALES_SCENARIO_FIELD)
             print(f"✅ Файл '{new_file_name}' загружен в сделку {item_id}.")
         else:
             print(f"❌ Ошибка получения ссылки на файл {new_file_id}.")
     else:
         print(f"❌ Ошибка копирования шаблона для сделки {item_id}: {copy_data}")
 
-def update_item_with_file_link(item_id, file_url, field):
+def update_item_with_file_link1(item_id, file_url, field):
     """Обновляет поле сделки ссылкой на файл"""
     response = requests.post(BITRIX_ITEM_UPDATE_URL, json={
         "entityTypeId": BITRIX_SMART_PROCESS_ID,
@@ -62,7 +62,7 @@ def update_item_with_file_link(item_id, file_url, field):
     else:
         print(f"❌ Ошибка обновления сделки {item_id}:", response.json())
 
-def process_deal(item_id):
+def process_deal1(item_id):
     """Обрабатывает конкретную сделку, загружая шаблон или создавая отчет"""
     response = requests.get(BITRIX_ITEM_LIST_URL, params={"entityTypeId": BITRIX_SMART_PROCESS_ID, "filter[id]": str(item_id)})
     data = response.json()
@@ -83,7 +83,7 @@ def process_deal(item_id):
             file_url, _ = upload_to_bitrix(file_name)
 
             if file_url:
-                update_item_with_file_link(item_id, file_url, BITRIX_FILE_FIELD)
+                update_item_with_file_link1(item_id, file_url, BITRIX_FILE_FIELD)
                 set_processed_flag(item_id)
                 print(f"✅ Сделка {item_id} обработана.")
     else:
