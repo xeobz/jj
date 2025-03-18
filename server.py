@@ -97,7 +97,6 @@ def get_user_name(user_id):
 
 
 def process_field_value(field, value):
-    print(f"DEBUG | Поле: {field} | Значение: {value} | Тип: {type(value)}")
     if value is None:
         return ""  # Если значение None, возвращаем пустую строку
 
