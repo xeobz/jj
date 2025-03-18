@@ -100,7 +100,8 @@ def process_field_value(field, value):
     if value is None:
         return ""  # Если значение None, возвращаем пустую строку
 
-    if isinstance(value, list):  # Обрабатываем множественные поля
+    # Обрабатываем множественные поля только если это НЕ "Тип виджета" и "Тип основной площадки"
+    if isinstance(value, list) and field not in ["ufCrm8_1741619856822", "ufCrm8_1741776999985"]:
         return "\n".join(str(v) for v in value)  # Объединяем элементы через новую строку
 
     if field == "ufCrm8_1741620290":  # Ответственный за проверку (ФИО)
