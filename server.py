@@ -131,32 +131,28 @@ def process_field_value(field, value):
         return mapping.get(int(value), f"Неизвестное значение ({value})")
 
     elif field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
-        mapping = {78: "Внешний", 80: "Форма заявки", 82: "Чат-бот"}
+        mapping = {
+            "78": "Внешний",
+            "80": "Форма заявки",
+            "82": "Чат-бот"
+        }
     
         # Логируем входные данные
         print(f"DEBUG | Поле: {field} | Получено значение: {value} | Тип: {type(value)}")
     
         if isinstance(value, list):
-            processed_values = []
-            for v in value:
-                try:
-                    int_value = int(v)  # Преобразуем строку в число
-                    processed_values.append(mapping.get(int_value, f"Неизвестное значение ({int_value})"))
-                except ValueError:
-                    processed_values.append(f"Ошибка преобразования ({v})")  # Логируем ошибку
-    
+            processed_values = [mapping.get(v, f"Неизвестное значение ({v})") for v in value]
             result = "\n".join(processed_values)
             print(f"DEBUG | Итоговый список значений (Текст!): {result}")
             return result
-        
-        if isinstance(value, str) and value.isdigit():
-            processed_value = mapping.get(int(value), f"Неизвестное значение ({value})")
+    
+        if isinstance(value, str):
+            processed_value = mapping.get(value, f"Неизвестное значение ({value})")
             print(f"DEBUG | Итоговое одиночное значение (Текст!): {processed_value}")
             return processed_value
     
         print(f"DEBUG | Значение не распознано, возвращаю как есть: {value}")
         return str(value)
-
 
     elif field == "ufCrm8_1741620131859":  # Формат презентации
         return "PDF" if value == 90 else "PowerPoint" if value == 92 else "Google Slides"
