@@ -132,9 +132,18 @@ def process_field_value(field, value):
 
     elif field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
         mapping = {78: "Внешний", 80: "Форма заявки", 82: "Чат-бот"}
+    
+        # Преобразуем значение в список, если оно строка (например, "78,80,82" → ["78", "80", "82"])
+        if isinstance(value, str):
+            value = value.replace(",", " ").split()  # Разделяем строку на элементы списка
+    
         if isinstance(value, list):  
-            return "\n".join(mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v)
-        return mapping.get(int(value), f"Неизвестное значение ({value})")
+            return "\n".join([mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if str(v).isdigit()])
+        
+        if isinstance(value, int):
+            return mapping.get(value, f"Неизвестное значение ({value})")
+    
+        return str(value)  # Если не число и не список, просто вернуть как есть
 
     elif field == "ufCrm8_1741620131859":  # Формат презентации
         return "PDF" if value == 90 else "PowerPoint" if value == 92 else "Google Slides"
