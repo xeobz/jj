@@ -130,18 +130,27 @@ def process_field_value(field, value):
             return "\n".join(mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v)
         return mapping.get(int(value), f"Неизвестное значение ({value})")
 
-    if field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
+    elif field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
         mapping = {78: "Внешний", 80: "Форма заявки", 82: "Чат-бот"}
-
+    
+        # Выводим в консоль входное значение и его тип
+        print(f"DEBUG | Поле: {field} | Получено значение: {value} | Тип: {type(value)}")
+    
         if isinstance(value, str):
-            value = value.replace(",", " ").split()  
-
+            value = value.replace(",", " ").split()
+            print(f"DEBUG | Значение после обработки строки: {value} | Тип: {type(value)}")
+    
         if isinstance(value, list):  
-            return "\n".join([mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if str(v).strip().isdigit()])
+            processed_values = [mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if str(v).strip().isdigit()]
+            print(f"DEBUG | Итоговый список значений: {processed_values}")
+            return "\n".join(processed_values)
         
         if isinstance(value, int):
-            return mapping.get(value, f"Неизвестное значение ({value})")
-
+            processed_value = mapping.get(value, f"Неизвестное значение ({value})")
+            print(f"DEBUG | Итоговое одиночное значение: {processed_value}")
+            return processed_value
+    
+        print(f"DEBUG | Значение не распознано, возвращаю как есть: {value}")
         return str(value)
 
     elif field == "ufCrm8_1741620131859":  # Формат презентации
