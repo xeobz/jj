@@ -133,25 +133,23 @@ def process_field_value(field, value):
     elif field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
         mapping = {78: "Внешний", 80: "Форма заявки", 82: "Чат-бот"}
     
-        # Выводим в консоль входное значение и его тип
+        # Логируем входные данные
         print(f"DEBUG | Поле: {field} | Получено значение: {value} | Тип: {type(value)}")
     
-        if isinstance(value, str):
-            value = value.replace(",", " ").split()
-            print(f"DEBUG | Значение после обработки строки: {value} | Тип: {type(value)}")
-    
-        if isinstance(value, list):  
-            processed_values = [mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if str(v).strip().isdigit()]
+        if isinstance(value, list):
+            # Преобразуем строки в числа и получаем текстовые значения из mapping
+            processed_values = [mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v.isdigit()]
             print(f"DEBUG | Итоговый список значений: {processed_values}")
             return "\n".join(processed_values)
         
-        if isinstance(value, int):
-            processed_value = mapping.get(value, f"Неизвестное значение ({value})")
+        if isinstance(value, str) and value.isdigit():
+            processed_value = mapping.get(int(value), f"Неизвестное значение ({value})")
             print(f"DEBUG | Итоговое одиночное значение: {processed_value}")
             return processed_value
     
         print(f"DEBUG | Значение не распознано, возвращаю как есть: {value}")
         return str(value)
+
 
     elif field == "ufCrm8_1741620131859":  # Формат презентации
         return "PDF" if value == 90 else "PowerPoint" if value == 92 else "Google Slides"
