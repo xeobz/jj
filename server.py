@@ -137,14 +137,21 @@ def process_field_value(field, value):
         print(f"DEBUG | Поле: {field} | Получено значение: {value} | Тип: {type(value)}")
     
         if isinstance(value, list):
-            # Преобразуем строки в числа и получаем текстовые значения из mapping
-            processed_values = [mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v.isdigit()]
-            print(f"DEBUG | Итоговый список значений: {processed_values}")
-            return "\n".join(processed_values)
+            processed_values = []
+            for v in value:
+                try:
+                    int_value = int(v)  # Преобразуем строку в число
+                    processed_values.append(mapping.get(int_value, f"Неизвестное значение ({int_value})"))
+                except ValueError:
+                    processed_values.append(f"Ошибка преобразования ({v})")  # Логируем ошибку
+    
+            result = "\n".join(processed_values)
+            print(f"DEBUG | Итоговый список значений (Текст!): {result}")
+            return result
         
         if isinstance(value, str) and value.isdigit():
             processed_value = mapping.get(int(value), f"Неизвестное значение ({value})")
-            print(f"DEBUG | Итоговое одиночное значение: {processed_value}")
+            print(f"DEBUG | Итоговое одиночное значение (Текст!): {processed_value}")
             return processed_value
     
         print(f"DEBUG | Значение не распознано, возвращаю как есть: {value}")
