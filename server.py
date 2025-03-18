@@ -125,16 +125,16 @@ def process_field_value(field, value):
         return "Да" if value == 114 else "Нет"
 
     elif field == "ufCrm8_1741776999985":  # Тип основной площадки (множественное поле)
-        mapping = {122: "Лендинг (LP)"}
+        mapping = {122: "Лендинг (LP)", 124: "Лендинг (ГТ)"}
         if isinstance(value, list):  
-            return "\n".join(mapping.get(int(v), "Лендинг (ГТ)") for v in value if v)
-        return mapping.get(int(value), "Лендинг (ГТ)")
+            return "\n".join(mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v)
+        return mapping.get(int(value), f"Неизвестное значение ({value})")
 
-    elif field == "ufCrm8_1741619856822":  # Тип виджета
-        mapping = {78: "Внешний", 82: "Чат-бот", 80: "Форма заявки"}  
+    elif field == "ufCrm8_1741619856822":  # Тип виджета (множественное поле)
+        mapping = {78: "Внешний", 80: "Форма заявки", 82: "Чат-бот"}
         if isinstance(value, list):  
-            return "\n".join(mapping.get(int(v), "Форма заявки") for v in value if v)
-        return mapping.get(int(value), "Форма заявки")
+            return "\n".join(mapping.get(int(v), f"Неизвестное значение ({v})") for v in value if v)
+        return mapping.get(int(value), f"Неизвестное значение ({value})")
 
     elif field == "ufCrm8_1741620131859":  # Формат презентации
         return "PDF" if value == 90 else "PowerPoint" if value == 92 else "Google Slides"
